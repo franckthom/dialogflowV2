@@ -64,15 +64,15 @@ def webhook():
 def processRequest(req):
 
     #météo
-    # if req.get("result").get("action")=="yahooWeatherForecast":
-    #     baseurl = "https://query.yahooapis.com/v1/public/yql?"
-    #     yql_query = makeYqlQuery(req)
-    #     if yql_query is None:
-    #        return {}
-    #     yql_url = baseurl + urlencode({'q': yql_query}) + "&format=json&lang=fr-FR"
-    #     result = urlopen(yql_url).read()
-    #     data = json.loads(result)
-    #     res = makeWebhookResult(data)
+    if req.get("queryResult").get("action")=="yahooWeatherForecast":
+        baseurl = "https://query.yahooapis.com/v1/public/yql?"
+        yql_query = makeYqlQuery(req)
+        if yql_query is None:
+           return {}
+        yql_url = baseurl + urlencode({'q': yql_query}) + "&format=json&lang=fr-FR"
+        result = urlopen(yql_url).read()
+        data = json.loads(result)
+        res = makeWebhookResult(data)
     # #météoopen
     # elif req.get("result").get("action")=="openweather":
     #     baseurl = "api.openweathermap.org/data/2.5/weather?"
@@ -84,13 +84,13 @@ def processRequest(req):
     #     data = json.loads(result)
     #     res = makeWebhookResultopen(data)
     # #sheet exposant
-    # elif req.get("result").get("action")=="readsheet-exp":
-    #     GsExp_query = makeGsExpQuery(req)
-    #     client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
-    #     data = client.search(sheet="Exposant", nom=GsExp_query)
-    #     res = makeWebhookResultForSheetsExp(data)
+    elif req.get("queryResult").get("action")=="readsheet-exp":
+        GsExp_query = makeGsExpQuery(req)
+        client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
+        data = client.search(sheet="Exposant", nom=GsExp_query)
+        res = makeWebhookResultForSheetsExp(data)
     #  #sheet bus
-    if req.get("queryResult").get("action")=="readsheet-bus":
+    elif req.get("queryResult").get("action")=="readsheet-bus":
         GsBus_query = makeGsBusQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
         data = client.search(sheet="Navette", date=GsBus_query)
@@ -108,11 +108,11 @@ def processRequest(req):
         data = client.search(sheet="Conference", Partner=GsSesHor_query)
         res = makeWebhookResultForSheetsSesHor(data)
       #sheetnow
-    elif req.get("queryResult").get("action")=="readsheet-ses-now":
-        #GsSesNow_query = makeGsSesNowQuery(req)
-        client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
-        data = client.read(sheet="Conference")
-        res = makeWebhookResultForSheetsSesNow(data)
+    # elif req.get("queryResult").get("action")=="readsheet-ses-now":
+    #     #GsSesNow_query = makeGsSesNowQuery(req)
+    #     client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
+    #     data = client.read(sheet="Conference")
+    #     res = makeWebhookResultForSheetsSesNow(data)
 
 
     else:
@@ -155,7 +155,7 @@ def processRequest(req):
 
 #fonction pour créer la query pour exposant
 def makeGsExpQuery(req):
-    result = req.get("result")
+    result = req.get("queryResult")
     parameters = result.get("parameters")
     exp = parameters.get("Exposant")
     if exp is None:
@@ -169,10 +169,7 @@ def makeWebhookResultForSheetsExp(data):
     des = data[0]['description']
     speech = nom + " ce trouve à l'emplacement " + emp + ", c'est un " + des
     return {
-        "speech": speech,
-        "displayText": speech,
-        # "data": data,
-        # "contextOut": [],
+        "fulfillmentText": speech,
         "source": "webhook"
     }
 
@@ -242,53 +239,53 @@ def makeWebhookResultForSheetsSesHor(data):
     #return time
 
 #fonction permettant d'afficher les sessions en temps réels à terminer
-def makeWebhookResultForSheetsSesNow(data):
-    #result = req.get("result")
-    #parameters = result.get("parameters")
-    #time = parameters.get("time")
-    now = datetime.now()
-    now_time = now.time()
-    #timeStart = data[0]['Start time']
-    #timeEnd = data[0]['End time']
-    if now_time >= time(10,30) and now_time <= time(16,30):
-       speech = "C'est dans l'intervalle"
-    else:
-       speech = "Ce n'est pas dans l'intervalle"
-    #value = []
-    #for each in data:
-        #value.append(each['Start time'])
-    #nom = ', '.join(map(str, value))
-    #speech = "Les sessions sont: " + nom
+# def makeWebhookResultForSheetsSesNow(data):
+#     #result = req.get("result")
+#     #parameters = result.get("parameters")
+#     #time = parameters.get("time")
+#     now = datetime.now()
+#     now_time = now.time()
+#     #timeStart = data[0]['Start time']
+#     #timeEnd = data[0]['End time']
+#     if now_time >= time(10,30) and now_time <= time(16,30):
+#        speech = "C'est dans l'intervalle"
+#     else:
+#        speech = "Ce n'est pas dans l'intervalle"
+#     #value = []
+#     #for each in data:
+#         #value.append(each['Start time'])
+#     #nom = ', '.join(map(str, value))
+#     #speech = "Les sessions sont: " + nom
+#
+#     return {
+#          "speech": speech,
+#          "displayText": speech,
+#          # "data": data,
+#          # "contextOut": [],
+#          "source": "webhook"
+#        }
 
-    return {
-         "speech": speech,
-         "displayText": speech,
-         # "data": data,
-         # "contextOut": [],
-         "source": "webhook"
-       }
-
-def makeOwmQuery(req):
-    result = req.get("result")
-    parameters = result.get("parameters")
-    city = parameters.get("geo-city")
-    #if city is None:
-        #return None
-    return city
-
-def makeWebhookResultopen(data):
-    speech = data['weather']
-    return {
-        "speech": speech,
-        "displayText": speech,
-         #"data": data,
-        # "contextOut": [],
-        "source": "webhook"
-    }
+# def makeOwmQuery(req):
+#     result = req.get("result")
+#     parameters = result.get("parameters")
+#     city = parameters.get("geo-city")
+#     #if city is None:
+#         #return None
+#     return city
+# 
+# def makeWebhookResultopen(data):
+#     speech = data['weather']
+#     return {
+#         "speech": speech,
+#         "displayText": speech,
+#          #"data": data,
+#         # "contextOut": [],
+#         "source": "webhook"
+#     }
 
 #fonction création de la query pour API météo
 def makeYqlQuery(req):
-    result = req.get("result")
+    result = req.get("queryResult")
     parameters = result.get("parameters")
     city = parameters.get("geo-city")
     if city is None:
@@ -329,10 +326,7 @@ def makeWebhookResult(data):
     print(speech)
 
     return {
-        "speech": speech,
-        "displayText": speech,
-        # "data": data,
-        # "contextOut": [],
+        "fulfillmentText": speech,
         "source": "webhook"
     }
 
