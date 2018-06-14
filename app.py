@@ -54,7 +54,7 @@ def webhook():
     r = make_response(res)
     r.headers['Content-Type'] = 'application/json'
 
-    #chat = processChatbase(req, res)
+    chat = processChatbase(req, res)
 
     return r
 
@@ -73,16 +73,6 @@ def processRequest(req):
         result = urlopen(yql_url).read()
         data = json.loads(result)
         res = makeWebhookResult(data)
-    # #météoopen
-    # elif req.get("result").get("action")=="openweather":
-    #     baseurl = "api.openweathermap.org/data/2.5/weather?"
-    #     owm_query = makeOwmQuery(req)
-    #     #if owm_query is None:
-    #        #return {}
-    #     owm_url = baseurl + urlencode({'q': owm_query}) + "&lang=fr&APPID=8436a2c87fc4408d01d9f7f92e9759ca"
-    #     result = urlopen(owm_url).read()
-    #     data = json.loads(result)
-    #     res = makeWebhookResultopen(data)
     # #sheet exposant
     elif req.get("queryResult").get("action")=="readsheet-exp":
         GsExp_query = makeGsExpQuery(req)
@@ -120,38 +110,38 @@ def processRequest(req):
 
     return res
 #chatbase integration
-# def processChatbase(req, res):
-#   result = req.get("result")
-#   metadata = result.get("metadata")
-#   fulfillment = result.get("fulfillment")
-#   status = req.get("status")
+def processChatbase(req, res):
+  result = req.get("queryResult")
+  intentname = result.get("intent")
+  #fulfillment = result.get("fulfillment")
+  #status = req.get("status")
 #
 #
 #   #message de base
-#   set = MessageSet(api_key = '56bd0b2b-4b67-4522-8933-1ff443a8a922',
-#                    platform = 'Dialogflow',
-#                    version = "0.1",
-#                    user_id = req.get("sessionId"))
+  set = MessageSet(api_key = '56bd0b2b-4b67-4522-8933-1ff443a8a922',
+                   platform = 'Dialogflow',
+                   version = "0.1",
+                   user_id = req.get("session"))
 #   #not_handled integration
-#   if result.get("action") == "input.unknown" or fulfillment.get("speech") != "":
-#     msg = set.new_message(intent = metadata.get("intentName"),message = result.get("resolvedQuery"), not_handled=True)
+  if result.get("action") == "input.unknown":
+    msg = set.new_message(intent = intentname.get("displayName"),message = result.get("queryText"), not_handled=True)
 #   #handled
-#   else:
-#     msg = set.new_message(intent = metadata.get("intentName"),message = result.get("resolvedQuery"))
-#
-#     msg2 = Message(api_key='56bd0b2b-4b67-4522-8933-1ff443a8a922',
-#                    platform='Dialogflow',
-#                    version="0.1",
-#                    user_id=req.get("sessionId"),
-#                    #message
-#                    intent=metadata.get("intentName"),
-#                    type=MessageTypes.AGENT)
-#
-#     set.append_message(msg2)
+  else:
+    msg = set.new_message(intent = intentname.get("displayName"),message = result.get("queryText"))
+
+    msg2 = Message(api_key='56bd0b2b-4b67-4522-8933-1ff443a8a922',
+                   platform='Dialogflow',
+                   version="0.1",
+                   user_id=req.get("session"),
+                   #message
+                   intent = intentname.get("displayName"),
+                   type=MessageTypes.AGENT)
+
+    set.append_message(msg2)
 #   #message envoyé a chatbase
-#   resp = set.send()
-#
-#   return None
+  resp = set.send()
+
+  return None
 
 #fonction pour créer la query pour exposant
 def makeGsExpQuery(req):
@@ -272,7 +262,7 @@ def makeWebhookResultForSheetsSesHor(data):
 #     #if city is None:
 #         #return None
 #     return city
-# 
+#
 # def makeWebhookResultopen(data):
 #     speech = data['weather']
 #     return {
