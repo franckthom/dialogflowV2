@@ -64,33 +64,33 @@ def webhook():
 def processRequest(req):
 
     #météo
-    if req.get("result").get("action")=="yahooWeatherForecast":
-        baseurl = "https://query.yahooapis.com/v1/public/yql?"
-        yql_query = makeYqlQuery(req)
-        if yql_query is None:
-           return {}
-        yql_url = baseurl + urlencode({'q': yql_query}) + "&format=json&lang=fr-FR"
-        result = urlopen(yql_url).read()
-        data = json.loads(result)
-        res = makeWebhookResult(data)
-    #météoopen
-    elif req.get("result").get("action")=="openweather":
-        baseurl = "api.openweathermap.org/data/2.5/weather?"
-        owm_query = makeOwmQuery(req)
-        #if owm_query is None:
-           #return {}
-        owm_url = baseurl + urlencode({'q': owm_query}) + "&lang=fr&APPID=8436a2c87fc4408d01d9f7f92e9759ca"
-        result = urlopen(owm_url).read()
-        data = json.loads(result)
-        res = makeWebhookResultopen(data)
-    #sheet exposant
-    elif req.get("result").get("action")=="readsheet-exp":
-        GsExp_query = makeGsExpQuery(req)
-        client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
-        data = client.search(sheet="Exposant", nom=GsExp_query)
-        res = makeWebhookResultForSheetsExp(data)
-     #sheet bus
-    elif req.get("queryResult").get("action")=="readsheet-bus":
+    # if req.get("result").get("action")=="yahooWeatherForecast":
+    #     baseurl = "https://query.yahooapis.com/v1/public/yql?"
+    #     yql_query = makeYqlQuery(req)
+    #     if yql_query is None:
+    #        return {}
+    #     yql_url = baseurl + urlencode({'q': yql_query}) + "&format=json&lang=fr-FR"
+    #     result = urlopen(yql_url).read()
+    #     data = json.loads(result)
+    #     res = makeWebhookResult(data)
+    # #météoopen
+    # elif req.get("result").get("action")=="openweather":
+    #     baseurl = "api.openweathermap.org/data/2.5/weather?"
+    #     owm_query = makeOwmQuery(req)
+    #     #if owm_query is None:
+    #        #return {}
+    #     owm_url = baseurl + urlencode({'q': owm_query}) + "&lang=fr&APPID=8436a2c87fc4408d01d9f7f92e9759ca"
+    #     result = urlopen(owm_url).read()
+    #     data = json.loads(result)
+    #     res = makeWebhookResultopen(data)
+    # #sheet exposant
+    # elif req.get("result").get("action")=="readsheet-exp":
+    #     GsExp_query = makeGsExpQuery(req)
+    #     client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
+    #     data = client.search(sheet="Exposant", nom=GsExp_query)
+    #     res = makeWebhookResultForSheetsExp(data)
+    #  #sheet bus
+    if req.get("queryResult").get("action")=="readsheet-bus":
         GsBus_query = makeGsBusQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
         data = client.search(sheet="Navette", date=GsBus_query)
