@@ -96,19 +96,19 @@ def processRequest(req):
         data = client.search(sheet="Navette", date=GsBus_query)
         res = makeWebhookResultForSheetsBus(data)
      #sheet session
-    elif req.get("result").get("action")=="readsheet-ses":
+    elif req.get("queryResult").get("action")=="readsheet-ses":
         GsSes_query = makeGsSesQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
         data = client.search(sheet="Conference", date=GsSes_query)
         res = makeWebhookResultForSheetsSes(data)
       #sheet conference
-    elif req.get("result").get("action")=="readsheet-seshor":
+    elif req.get("queryResult").get("action")=="readsheet-seshor":
         GsSesHor_query = makeGsSesHorQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
         data = client.search(sheet="Conference", Partner=GsSesHor_query)
         res = makeWebhookResultForSheetsSesHor(data)
       #sheetnow
-    elif req.get("result").get("action")=="readsheet-ses-now":
+    elif req.get("queryResult").get("action")=="readsheet-ses-now":
         #GsSesNow_query = makeGsSesNowQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
         data = client.read(sheet="Conference")
@@ -196,7 +196,7 @@ def makeWebhookResultForSheetsBus(data):
 
 #fonction pour prendre le parametre date pour Sheet session
 def makeGsSesQuery(req):
-    result = req.get("result")
+    result = req.get("queryResult")
     parameters = result.get("parameters")
     date = parameters.get("date")
     if date is None:
@@ -212,15 +212,12 @@ def makeWebhookResultForSheetsSes(data):
     date = data[0]['date']
     speech = "Les partenaires exposant le " + date + " sont: " + nom
     return {
-          "speech": speech,
-          "displayText": speech,
-           #"data": data,
-           #"contextOut": [],
+          "fulfillmentText": speech,
           "source": "webhook"
         }
 
 def makeGsSesHorQuery(req):
-    result = req.get("result")
+    result = req.get("queryResult")
     parameters = result.get("parameters")
     date = parameters.get("conference")
     if date is None:
@@ -233,10 +230,7 @@ def makeWebhookResultForSheetsSesHor(data):
     partner = data[0]['Partner']
     speech = "La conférence de " + partner +" commence à " + timestart + " et termine à " + timeend
     return {
-          "speech": speech,
-          "displayText": speech,
-           #"data": data,
-           #"contextOut": [],
+          "fulfillmentText": speech,
           "source": "webhook"
         }
 #def makeGsSesNowQuery(req):
