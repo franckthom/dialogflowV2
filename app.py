@@ -90,7 +90,7 @@ def processRequest(req):
         data = client.search(sheet="Exposant", nom=GsExp_query)
         res = makeWebhookResultForSheetsExp(data)
      #sheet bus
- elif req.get("queryResult").get("action")=="readsheet-bus":
+    elif req.get("queryResult").get("action")=="readsheet-bus":
         GsBus_query = makeGsBusQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
         data = client.search(sheet="Navette", date=GsBus_query)
