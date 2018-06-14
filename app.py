@@ -46,23 +46,23 @@ def webhook():
     req = request.get_json(silent=True, force=True)
     print("Request:")
     print(json.dumps(req, indent=4))
-    
+
     res = processRequest(req)
-    
+
     res = json.dumps(res, indent=4)
     # print(res)
     r = make_response(res)
     r.headers['Content-Type'] = 'application/json'
-    
-    chat = processChatbase(req, res)
-    
+
+    #chat = processChatbase(req, res)
+
     return r
 
 
 
 #appel des API
 def processRequest(req):
-    
+
     #météo
     if req.get("result").get("action")=="yahooWeatherForecast":
         baseurl = "https://query.yahooapis.com/v1/public/yql?"
@@ -90,7 +90,7 @@ def processRequest(req):
         data = client.search(sheet="Exposant", nom=GsExp_query)
         res = makeWebhookResultForSheetsExp(data)
      #sheet bus
-    elif req.get("result").get("action")=="readsheet-bus":
+ elif req.get("queryResult").get("action")=="readsheet-bus":
         GsBus_query = makeGsBusQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
         data = client.search(sheet="Navette", date=GsBus_query)
@@ -99,60 +99,60 @@ def processRequest(req):
     elif req.get("result").get("action")=="readsheet-ses":
         GsSes_query = makeGsSesQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
-        data = client.search(sheet="Conference", date=GsSes_query) 
+        data = client.search(sheet="Conference", date=GsSes_query)
         res = makeWebhookResultForSheetsSes(data)
       #sheet conference
     elif req.get("result").get("action")=="readsheet-seshor":
         GsSesHor_query = makeGsSesHorQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
-        data = client.search(sheet="Conference", Partner=GsSesHor_query) 
+        data = client.search(sheet="Conference", Partner=GsSesHor_query)
         res = makeWebhookResultForSheetsSesHor(data)
-      #sheetnow  
+      #sheetnow
     elif req.get("result").get("action")=="readsheet-ses-now":
         #GsSesNow_query = makeGsSesNowQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
-        data = client.read(sheet="Conference") 
+        data = client.read(sheet="Conference")
         res = makeWebhookResultForSheetsSesNow(data)
-    
-    
+
+
     else:
         return {}
 
     return res
 #chatbase integration
-def processChatbase(req, res):
-  result = req.get("result")
-  metadata = result.get("metadata")
-  fulfillment = result.get("fulfillment")
-  status = req.get("status")
-  
-  
-  #message de base
-  set = MessageSet(api_key = '56bd0b2b-4b67-4522-8933-1ff443a8a922',
-                   platform = 'Dialogflow',
-                   version = "0.1",
-                   user_id = req.get("sessionId"))
-  #not_handled integration
-  if result.get("action") == "input.unknown" or fulfillment.get("speech") != "":
-    msg = set.new_message(intent = metadata.get("intentName"),message = result.get("resolvedQuery"), not_handled=True)
-  #handled  
-  else: 
-    msg = set.new_message(intent = metadata.get("intentName"),message = result.get("resolvedQuery"))
-  
-    msg2 = Message(api_key='56bd0b2b-4b67-4522-8933-1ff443a8a922',
-                   platform='Dialogflow',
-                   version="0.1",
-                   user_id=req.get("sessionId"),
-                   #message
-                   intent=metadata.get("intentName"),
-                   type=MessageTypes.AGENT)
-  
-    set.append_message(msg2)
-  #message envoyé a chatbase
-  resp = set.send()
-  
-  return None
-    
+# def processChatbase(req, res):
+#   result = req.get("result")
+#   metadata = result.get("metadata")
+#   fulfillment = result.get("fulfillment")
+#   status = req.get("status")
+#
+#
+#   #message de base
+#   set = MessageSet(api_key = '56bd0b2b-4b67-4522-8933-1ff443a8a922',
+#                    platform = 'Dialogflow',
+#                    version = "0.1",
+#                    user_id = req.get("sessionId"))
+#   #not_handled integration
+#   if result.get("action") == "input.unknown" or fulfillment.get("speech") != "":
+#     msg = set.new_message(intent = metadata.get("intentName"),message = result.get("resolvedQuery"), not_handled=True)
+#   #handled
+#   else:
+#     msg = set.new_message(intent = metadata.get("intentName"),message = result.get("resolvedQuery"))
+#
+#     msg2 = Message(api_key='56bd0b2b-4b67-4522-8933-1ff443a8a922',
+#                    platform='Dialogflow',
+#                    version="0.1",
+#                    user_id=req.get("sessionId"),
+#                    #message
+#                    intent=metadata.get("intentName"),
+#                    type=MessageTypes.AGENT)
+#
+#     set.append_message(msg2)
+#   #message envoyé a chatbase
+#   resp = set.send()
+#
+#   return None
+
 #fonction pour créer la query pour exposant
 def makeGsExpQuery(req):
     result = req.get("result")
@@ -177,7 +177,7 @@ def makeWebhookResultForSheetsExp(data):
     }
 
 def makeGsBusQuery(req):
-    result = req.get("result")
+    result = req.get("queryResult")
     parameters = result.get("parameters")
     date = parameters.get("date")
     if date is None:
@@ -190,10 +190,7 @@ def makeWebhookResultForSheetsBus(data):
     hor = data[0]['horaire retour']
     speech = "Le bus a pour horaire aller: " + hoa + " et retour: " + hor
     return {
-        "speech": speech,
-        "displayText": speech,
-        # "data": data,
-        # "contextOut": [],
+        "fulfillmentText": speech,
         "source": "webhook"
     }
 
@@ -221,7 +218,7 @@ def makeWebhookResultForSheetsSes(data):
            #"contextOut": [],
           "source": "webhook"
         }
-        
+
 def makeGsSesHorQuery(req):
     result = req.get("result")
     parameters = result.get("parameters")
@@ -229,7 +226,7 @@ def makeGsSesHorQuery(req):
     if date is None:
         return None
     return date
-    
+
 def makeWebhookResultForSheetsSesHor(data):
     timestart = data[0]['Start time']
     timeend = data[0]['End time']
@@ -252,9 +249,9 @@ def makeWebhookResultForSheetsSesHor(data):
 
 #fonction permettant d'afficher les sessions en temps réels à terminer
 def makeWebhookResultForSheetsSesNow(data):
-    result = req.get("result")
-    parameters = result.get("parameters")
-    time = parameters.get("time")
+    #result = req.get("result")
+    #parameters = result.get("parameters")
+    #time = parameters.get("time")
     now = datetime.now()
     now_time = now.time()
     #timeStart = data[0]['Start time']
@@ -268,7 +265,7 @@ def makeWebhookResultForSheetsSesNow(data):
         #value.append(each['Start time'])
     #nom = ', '.join(map(str, value))
     #speech = "Les sessions sont: " + nom
-    
+
     return {
          "speech": speech,
          "displayText": speech,
@@ -344,7 +341,7 @@ def makeWebhookResult(data):
         # "contextOut": [],
         "source": "webhook"
     }
-  
+
 
 
 if __name__ == '__main__':
