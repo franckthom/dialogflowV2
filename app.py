@@ -77,24 +77,28 @@ def processRequest(req):
     elif req.get("queryResult").get("action")=="readsheet-exp":
         GsExp_query = makeGsExpQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
+    #à modifier: 'sheet="Exposant"' choisir la sheet correspondante
         data = client.search(sheet="Exposant", nom=GsExp_query)
         res = makeWebhookResultForSheetsExp(data)
     #  #sheet bus
     elif req.get("queryResult").get("action")=="readsheet-bus":
         GsBus_query = makeGsBusQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
+    #à modifier: 'sheet="Navette"' choisir la sheet correspondante
         data = client.search(sheet="Navette", date=GsBus_query)
         res = makeWebhookResultForSheetsBus(data)
      #sheet session
     elif req.get("queryResult").get("action")=="readsheet-ses":
         GsSes_query = makeGsSesQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
+    #à modifier: 'sheet="Conference"' choisir la sheet correspondante
         data = client.search(sheet="Conference", date=GsSes_query)
         res = makeWebhookResultForSheetsSes(data)
       #sheet conference
     elif req.get("queryResult").get("action")=="readsheet-seshor":
         GsSesHor_query = makeGsSesHorQuery(req)
         client = SheetsuClient("https://sheetsu.com/apis/v1.0su/27ac2cb1ff16")
+    #à modifier: 'sheet="Conference"' choisir la sheet correspondante
         data = client.search(sheet="Conference", Partner=GsSesHor_query)
         res = makeWebhookResultForSheetsSesHor(data)
       #sheetnow
@@ -113,19 +117,18 @@ def processRequest(req):
 def processChatbase(req, res):
   result = req.get("queryResult")
   intentname = result.get("intent")
-  #fulfillment = result.get("fulfillment")
-  #status = req.get("status")
-#
-#
-#   #message de base
+
+    
+   #message de base
+   ##à modifier: 'api_key = ''' changer l'API key
   set = MessageSet(api_key = '56bd0b2b-4b67-4522-8933-1ff443a8a922',
                    platform = 'Dialogflow',
                    version = "0.1",
                    user_id = req.get("session"))
-#   #not_handled integration
+   #not_handled integration
   if result.get("action") == "input.unknown":
     msg = set.new_message(intent = intentname.get("displayName"),message = result.get("queryText"), not_handled=True)
-#   #handled
+   #handled
   else:
     msg = set.new_message(intent = intentname.get("displayName"),message = result.get("queryText"))
 
@@ -147,6 +150,7 @@ def processChatbase(req, res):
 def makeGsExpQuery(req):
     result = req.get("queryResult")
     parameters = result.get("parameters")
+    #à modifier si changement de paramètre: choisir le paramètre correspondant
     exp = parameters.get("Exposant")
     if exp is None:
         return None
@@ -154,6 +158,7 @@ def makeGsExpQuery(req):
 
 #fonction qui trie les données à afficher pour API googlesheet exposant
 def makeWebhookResultForSheetsExp(data):
+    #à modifiers si changement de nom de colonne dans la base de donnée: changer les noms situés après data[0]
     nom = data[0]['nom']
     emp = data[0]['emplacement']
     des = data[0]['description']
@@ -166,6 +171,7 @@ def makeWebhookResultForSheetsExp(data):
 def makeGsBusQuery(req):
     result = req.get("queryResult")
     parameters = result.get("parameters")
+    #à modifier si changement de paramètre: choisir le paramètre correspondant
     date = parameters.get("date")
     if date is None:
         return None
@@ -173,6 +179,7 @@ def makeGsBusQuery(req):
 
 #fonction afin d'afficher API googlesheet pour bus
 def makeWebhookResultForSheetsBus(data):
+    #à modifiers si changement de nom de colonne dans la base de donnée: changer les noms situés après data[0]
     hoa = data[0]['horaire aller']
     hor = data[0]['horaire retour']
     speech = "Le bus a pour horaire aller: " + hoa + " et retour: " + hor
@@ -185,6 +192,7 @@ def makeWebhookResultForSheetsBus(data):
 def makeGsSesQuery(req):
     result = req.get("queryResult")
     parameters = result.get("parameters")
+    #à modifier si changement de paramètre: choisir le paramètre correspondant
     date = parameters.get("date")
     if date is None:
         return None
@@ -192,6 +200,7 @@ def makeGsSesQuery(req):
 
 #fonction afin d'afficher API googlesheet pour session
 def makeWebhookResultForSheetsSes(data):
+    #à modifier si vous voulez afficher plusieurs valeurs en fonction d'une date: fonction permettant d'afficher les partenaires exposant à une certaine date.
     value = []
     for each in data:
         value.append(each['Partner'])
@@ -206,12 +215,14 @@ def makeWebhookResultForSheetsSes(data):
 def makeGsSesHorQuery(req):
     result = req.get("queryResult")
     parameters = result.get("parameters")
+    #à modifier si changement de paramètre: choisir le paramètre correspondant
     date = parameters.get("conference")
     if date is None:
         return None
     return date
 
 def makeWebhookResultForSheetsSesHor(data):
+    #à modifiers si changement de nom de colonne dans la base de donnée: changer les noms situés après data[0]
     timestart = data[0]['Start time']
     timeend = data[0]['End time']
     partner = data[0]['Partner']
@@ -220,58 +231,7 @@ def makeWebhookResultForSheetsSesHor(data):
           "fulfillmentText": speech,
           "source": "webhook"
         }
-#def makeGsSesNowQuery(req):
-    #result = req.get("result")
-    #parameters = result.get("parameters")
-    #time = parameters.get("time")
-    #if time is None:
-        #return None
-    #return time
 
-#fonction permettant d'afficher les sessions en temps réels à terminer
-# def makeWebhookResultForSheetsSesNow(data):
-#     #result = req.get("result")
-#     #parameters = result.get("parameters")
-#     #time = parameters.get("time")
-#     now = datetime.now()
-#     now_time = now.time()
-#     #timeStart = data[0]['Start time']
-#     #timeEnd = data[0]['End time']
-#     if now_time >= time(10,30) and now_time <= time(16,30):
-#        speech = "C'est dans l'intervalle"
-#     else:
-#        speech = "Ce n'est pas dans l'intervalle"
-#     #value = []
-#     #for each in data:
-#         #value.append(each['Start time'])
-#     #nom = ', '.join(map(str, value))
-#     #speech = "Les sessions sont: " + nom
-#
-#     return {
-#          "speech": speech,
-#          "displayText": speech,
-#          # "data": data,
-#          # "contextOut": [],
-#          "source": "webhook"
-#        }
-
-# def makeOwmQuery(req):
-#     result = req.get("result")
-#     parameters = result.get("parameters")
-#     city = parameters.get("geo-city")
-#     #if city is None:
-#         #return None
-#     return city
-#
-# def makeWebhookResultopen(data):
-#     speech = data['weather']
-#     return {
-#         "speech": speech,
-#         "displayText": speech,
-#          #"data": data,
-#         # "contextOut": [],
-#         "source": "webhook"
-#     }
 
 #fonction création de la query pour API météo
 def makeYqlQuery(req):
